@@ -32,7 +32,7 @@ def test_spotify_playlist_fetch_one():
         "track_url": None,
         "playlist_num": 1,
         "spotify_id": "2GpBrAoCwt48fxjgjlzMd4",
-        'tempo': 74.656,
+        'tempo': None,
     } == songs[0]
 
 
@@ -54,7 +54,7 @@ def test_spotify_playlist_fetch_more():
             "year": "2012",
             "playlist_num": 1,
             "spotify_id": "4rzfv0JLZfVhOhbSQ8o5jZ",
-            'tempo': 135.016,
+            'tempo': None,
         },
         {
             "album": "Wellness & Dreaming Source",
@@ -68,7 +68,7 @@ def test_spotify_playlist_fetch_more():
             "playlist_num": 2,
             "track_url": None,
             "spotify_id": "5o3jMYOSbaVz3tkgwhELSV",
-            'tempo': 137.805,
+            'tempo': None,
         },
         {
             "album": "This Is Happening",
@@ -82,7 +82,7 @@ def test_spotify_playlist_fetch_more():
             "year": "2010",
             "playlist_num": 3,
             "spotify_id": "4Cy0NHJ8Gh0xMdwyM9RkQm",
-            'tempo': 134.99,
+            'tempo': None,
         },
         {
             "album": "Glenn Horiuchi Trio / Gelenn Horiuchi Quartet: Mercy / Jump Start "
@@ -98,7 +98,7 @@ def test_spotify_playlist_fetch_more():
             "track_url": None,
             "playlist_num": 4,
             "spotify_id": "6hvFrZNocdt2FcKGCSY5NI",
-            'tempo': 114.767,
+            'tempo': None,
         },
         {
             "album": "All The Best (Spanish Version)",
@@ -112,7 +112,7 @@ def test_spotify_playlist_fetch_more():
             "year": "2007",
             "playlist_num": 5,
             "spotify_id": "2E2znCPaS8anQe21GLxcvJ",
-            'tempo': 122.318,
+            'tempo': None,
         },
     ] == songs
 
@@ -134,7 +134,7 @@ def test_spotify_track_fetch_one():
         "track_url": None,
         "playlist_num": 1,
         "spotify_id": "2GpBrAoCwt48fxjgjlzMd4",
-        'tempo': 74.656,
+        'tempo': None,
     } == songs[0]
 
 
@@ -155,7 +155,7 @@ def test_spotify_album_fetch_one():
         "year": "2012",
         "playlist_num": 1,
         "spotify_id": "5EoKQDGE2zxrTfRFZF52u5",
-        'tempo': 120.009,
+        'tempo': None,
     } == songs[0]
 
 
@@ -177,7 +177,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 1,
             "spotify_id": "69Yw7H4bRIwfIxL0ZCZy8y",
-            'tempo': 120.955,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -191,7 +191,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 2,
             "spotify_id": "5GGSjXZeTgX9sKYBtl8K6U",
-            'tempo': 147.384,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -205,7 +205,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 3,
             "spotify_id": "0Ssh20fuVhmasLRJ97MLnp",
-            'tempo': 152.769,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -219,7 +219,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 4,
             "spotify_id": "2LasW39KJDE4VH9hTVNpE2",
-            'tempo': 115.471,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -233,7 +233,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 5,
             "spotify_id": "6jXrIu3hWbmJziw34IHIwM",
-            'tempo': 145.124,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -247,7 +247,7 @@ def test_spotify_album_fetch_more():
             "track_url": None,
             "playlist_num": 6,
             "spotify_id": "5dHmGuUeRgp5f93G69tox5",
-            'tempo': 108.544,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -261,7 +261,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 7,
             "spotify_id": "2KPj0oB7cUuHQ3FuardOII",
-            'tempo': 159.156,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -275,7 +275,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 8,
             "spotify_id": "34CcBjL9WqEAtnl2i6Hbxa",
-            'tempo': 118.48,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -289,7 +289,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 9,
             "spotify_id": "1x9ak6LGIazLhfuaSIEkhG",
-            'tempo': 112.623,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -303,7 +303,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 10,
             "spotify_id": "4CITL18Tos0PscW1amCK4j",
-            'tempo': 145.497,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -317,7 +317,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 11,
             "spotify_id": "1e9Tt3nKBwRbuaU79kN3dn",
-            'tempo': 126.343,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -331,7 +331,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 12,
             "spotify_id": "0uHqoDT7J2TYBsJx6m4Tvi",
-            'tempo': 172.274,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -345,7 +345,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 13,
             "spotify_id": "3MIueGYoNiyBNfi5ukDgAK",
-            'tempo': 146.712,
+            'tempo': None,
 
         },
         {
@@ -360,7 +360,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 14,
             "spotify_id": "34WAOFWdJ83a3YYrDAZTjm",
-            'tempo': 128.873,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -374,7 +374,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 15,
             "spotify_id": "2AFIPUlApcUwGEgOSDwoBz",
-            'tempo': 122.986,
+            'tempo': None,
         },
         {
             "album": "Queen II (Deluxe Remastered Version)",
@@ -388,7 +388,7 @@ def test_spotify_album_fetch_more():
             "year": "1974",
             "playlist_num": 16,
             "spotify_id": "4G4Sf18XkFvNTV5vAxiQyd",
-            'tempo': 169.166,
+            'tempo': None,
         },
     ] == songs
     assert (len(songs)) == 16

@@ -44,12 +44,9 @@ def fetch_tracks(sp, item_type, item_id):
                     track_num = track_info.get("track_number")
                     track_name = track_info.get("name")
                     spotify_id = track_info.get("id")
-                    try:
-                        track_audio_data = sp.audio_analysis(spotify_id)
-                        tempo = track_audio_data.get("track").get("tempo")
-                    except:
-                        log.error("Couldn't fetch audio analysis for %s", track_name)
-                        tempo = None
+                    # Spotify deprecated the audio-analysis endpoint for apps
+                    # created after Nov 2024, so tempo is no longer fetched.
+                    tempo = None
                     track_artist = ", ".join(
                         [artist["name"] for artist in track_info.get("artists")]
                     )
@@ -148,12 +145,9 @@ def fetch_tracks(sp, item_type, item_id):
                     )
                     track_num = item["track_number"]
                     spotify_id = item.get("id")
-                    try:
-                        track_audio_data = sp.audio_analysis(spotify_id)
-                        tempo = track_audio_data.get("track").get("tempo")
-                    except:
-                        log.error("Couldn't fetch audio analysis for %s", track_name)
-                        tempo = None
+                    # Spotify deprecated the audio-analysis endpoint for apps
+                    # created after Nov 2024, so tempo is no longer fetched.
+                    tempo = None
                     songs_list.append(
                         {
                             "name": track_name,
@@ -196,12 +190,9 @@ def fetch_tracks(sp, item_type, item_id):
             album_total = album_info.get("total_tracks")
         track_num = items["track_number"]
         spotify_id = items["id"]
-        try:
-            track_audio_data = sp.audio_analysis(spotify_id)
-            tempo = track_audio_data.get("track").get("tempo")
-        except:
-            log.error("Couldn't fetch audio analysis for %s", track_name)
-            tempo = None
+        # Spotify deprecated the audio-analysis endpoint for apps created after
+        # Nov 2024, so tempo is no longer fetched.
+        tempo = None
         if len(items["album"]["images"]) > 0:
             cover = items["album"]["images"][0]["url"]
         else:

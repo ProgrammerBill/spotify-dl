@@ -25,6 +25,8 @@ from spotify_dl.youtube import (
     dump_json,
 )
 
+from spotify_dl.search import resolve_songs
+
 
 def spotify_dl():
     """Main entry point of the script."""
@@ -37,6 +39,16 @@ def spotify_dl():
         type=str,
         nargs="+",
         required=False,  # this has to be set to false to prevent useless prompt for url when all user wants is the script version
+    )
+    parser.add_argument(
+        "-q",
+        "--song",
+        action="store",
+        help="Search and download a song by name (optionally with artist), "
+        "e.g. -q \"Bohemian Rhapsody Queen\". Can be given multiple times.",
+        type=str,
+        nargs="+",
+        required=False,
     )
     parser.add_argument(
         "-o",
@@ -168,40 +180,70 @@ def spotify_dl():
             else:
                 setattr(args, key, value)
 
-    if not args.url:
-        raise (Exception("No playlist url provided:"))
-
-    tokens = get_tokens()
-    if tokens is None:
-        sys.exit(1)
-    client_id, client_secret = tokens
-
-    sp = spotipy.Spotify(
-        auth_manager=SpotifyClientCredentials(
-            client_id=client_id, client_secret=client_secret
+    if not args.url and not args.song:
+        raise (
+            Exception(
+                "Nothing to do: provide a Spotify URL with -l or a song name with -q."
+            )
         )
-    )
+
+    # Build a Spotify client when credentials are available. Downloading from
+    # URLs requires it; searching by name (-q) falls back to YouTube Music when
+    # credentials are missing.
+    sp = None
+    client_id = os.getenv("SPOTIPY_CLIENT_ID")
+    client_secret = os.getenv("SPOTIPY_CLIENT_SECRET")
+    if client_id and client_secret:
+        sp = spotipy.Spotify(
+            auth_manager=SpotifyClientCredentials(
+                client_id=client_id, client_secret=client_secret
+            )
+        )
+
+    if args.url and sp is None:
+        get_tokens()  # prints how to set the required credentials
+        sys.exit(1)
+
     log.debug("Arguments: %s ", args)
     log.info("Sponsorblock enabled?: %s", args.use_sponsorblock)
-    valid_urls = validate_spotify_urls(args.url)
-    if not valid_urls:
-        sys.exit(1)
 
     url_data = {"urls": []}
     start_time = time.time()
-    for url in valid_urls:
-        url_dict = {}
-        item_type, item_id = parse_spotify_url(url)
-        directory_name = get_item_name(sp, item_type, item_id)
-        url_dict["save_path"] = Path(
-            PurePath.joinpath(Path(args.output), Path(directory_name))
-        )
-        url_dict["save_path"].mkdir(parents=True, exist_ok=True)
-        log.info("Saving songs to %s directory", directory_name)
-        url_dict["songs"] = fetch_tracks(sp, item_type, item_id)
-        url_data["urls"].append(url_dict.copy())
+
+    if args.url:
+        valid_urls = validate_spotify_urls(args.url)
+        if not valid_urls:
+            sys.exit(1)
+        for url in valid_urls:
+            url_dict = {}
+            item_type, item_id = parse_spotify_url(url)
+            directory_name = get_item_name(sp, item_type, item_id)
+            url_dict["save_path"] = Path(
+                PurePath.joinpath(Path(args.output), Path(directory_name))
+            )
+            url_dict["save_path"].mkdir(parents=True, exist_ok=True)
+            log.info("Saving songs to %s directory", directory_name)
+            url_dict["songs"] = fetch_tracks(sp, item_type, item_id)
+            url_data["urls"].append(url_dict.copy())
+
+    if args.song:
+        if sp is None:
+            log.info(
+                "No Spotify credentials found; searching YouTube Music directly."
+            )
+        songs = resolve_songs(args.song, sp=sp)
+        if songs:
+            save_path = Path(args.output)
+            save_path.mkdir(parents=True, exist_ok=True)
+            url_data["urls"].append({"save_path": save_path, "songs": songs})
+
+    if not url_data["urls"]:
+        log.error("Nothing to download.")
+        sys.exit(1)
+
     if args.dump_json is True:
-        dump_json(url_dict["songs"])
+        for url_dict in url_data["urls"]:
+            dump_json(url_dict["songs"])
     elif args.download is True:
         file_name_f = default_filename
         if args.keep_playlist_order:

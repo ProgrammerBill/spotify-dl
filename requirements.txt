@@ -1,8 +1,8 @@
 sentry_sdk~=1.16
-yt-dlp>=2023.3.4
+yt-dlp>=2025.1.1
 spotipy~=2.21
 mutagen~=1.45
 rich~=12.0
 urllib3~=1.26
-ytmusicapi~=1.6.0
+ytmusicapi>=1.8.0
 Levenshtein~=0.25.1

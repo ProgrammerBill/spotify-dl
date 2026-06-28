@@ -26,6 +26,18 @@ Run the program
 
     spotify_dl -l spotify_playlist_link_1 spotify_playlist_link_2
 
+#### Download a song by name
+
+You can also search for and download a song by name (optionally with the artist) using `-q`/`--song`, without needing a Spotify link:
+
+    spotify_dl -q "Bohemian Rhapsody Queen"
+
+Pass multiple songs at once:
+
+    spotify_dl -q "Bohemian Rhapsody Queen" "Hotel California Eagles"
+
+When Spotify API credentials are set, the song is resolved through Spotify search (giving full metadata such as album, cover art and year). If no credentials are found, spotify-dl falls back to searching YouTube Music directly. Either way you'll be shown the top matches and asked to pick one.
+
 If you want to make use of parallel download, pass `-mc <number>`, where `<number>` refers to number of cores. If this is too high, spotify-dl will set it to one lesser than max number of cores that you have.
 
     spotify_dl -mc 4 -l spotify_playlist_link_1 spotify_playlist_link_2
