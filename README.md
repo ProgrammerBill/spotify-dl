@@ -28,23 +28,47 @@ Run the program
 
 #### Download a song by name
 
-You can also search for and download a song by name (optionally with the artist) using `-q`/`--song`, without needing a Spotify link:
+You can search for and download a song by name (optionally with the artist) using `-q`/`--song`, without needing a Spotify link:
 
     spotify_dl -q "Bohemian Rhapsody Queen"
 
-Pass multiple songs at once:
+spotify-dl shows the top matches and asks you to pick one:
+
+    Results for Bohemian Rhapsody Queen:
+      1. Bohemian Rhapsody — Queen — A Night At The Opera (1975)
+      2. Bohemian Rhapsody — Queen — Bohemian Rhapsody (The Original Soundtrack)
+      3. Bohemian Rhapsody - Live Aid — Queen — Bohemian Rhapsody
+    Select 1-5 (Enter for 1, 's' to skip):
+
+Type the number of the match you want, press `Enter` to take the first one, or `s` to skip. Pass multiple songs at once to be prompted for each in turn:
 
     spotify_dl -q "Bohemian Rhapsody Queen" "Hotel California Eagles"
 
-When Spotify API credentials are set, the song is resolved through Spotify search (giving full metadata such as album, cover art and year). If no credentials are found, spotify-dl falls back to searching YouTube Music directly. Either way you'll be shown the top matches and asked to pick one.
-
 #### Download a whole album by name
 
-Use `-a`/`--album` to search for an album by name (optionally with the artist) and download all of its tracks into a folder named after the album:
+Use `-a`/`--album` to search for an album by name (optionally with the artist) and download **all** of its tracks into a folder named after the album:
 
     spotify_dl -a "A Night At The Opera Queen"
 
-This uses the same backend auto-detection as `-q`: Spotify search when credentials are available, falling back to YouTube Music otherwise. You pick the album from the top matches and every track on it is downloaded.
+You pick the album from the top matches, then every track on it is downloaded automatically:
+
+    Results for A Night At The Opera Queen:
+      1. A Night At The Opera — Queen — 1975 — 12 tracks
+      2. A Night At The Opera (Deluxe Remastered) — Queen — 2011 — 24 tracks
+    Select 1-5 (Enter for 1, 's' to skip): 1
+
+Multiple albums can be queued in one command:
+
+    spotify_dl -a "A Night At The Opera Queen" "Hotel California Eagles"
+
+#### How the search backend is chosen
+
+Both `-q` and `-a` pick a backend automatically:
+
+* When Spotify API credentials are set, the search runs through Spotify (giving full metadata such as album, cover art and year).
+* When no credentials are found — or a Spotify request fails (for example a `403` because the app owner lacks the required subscription) — spotify-dl falls back to searching YouTube Music directly.
+
+So you can use `-q`/`-a` with no Spotify credentials at all. If your network blocks YouTube, pass a proxy with `-p`, e.g. `-p "http://127.0.0.1:7890"`.
 
 If you want to make use of parallel download, pass `-mc <number>`, where `<number>` refers to number of cores. If this is too high, spotify-dl will set it to one lesser than max number of cores that you have.
 
