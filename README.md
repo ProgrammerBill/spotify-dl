@@ -38,6 +38,14 @@ Pass multiple songs at once:
 
 When Spotify API credentials are set, the song is resolved through Spotify search (giving full metadata such as album, cover art and year). If no credentials are found, spotify-dl falls back to searching YouTube Music directly. Either way you'll be shown the top matches and asked to pick one.
 
+#### Download a whole album by name
+
+Use `-a`/`--album` to search for an album by name (optionally with the artist) and download all of its tracks into a folder named after the album:
+
+    spotify_dl -a "A Night At The Opera Queen"
+
+This uses the same backend auto-detection as `-q`: Spotify search when credentials are available, falling back to YouTube Music otherwise. You pick the album from the top matches and every track on it is downloaded.
+
 If you want to make use of parallel download, pass `-mc <number>`, where `<number>` refers to number of cores. If this is too high, spotify-dl will set it to one lesser than max number of cores that you have.
 
     spotify_dl -mc 4 -l spotify_playlist_link_1 spotify_playlist_link_2

@@ -141,3 +141,107 @@ def test_resolve_songs_skips_when_user_skips():
     ), mock.patch("builtins.input", return_value="s"):
         songs = search.resolve_songs(["Bohemian Rhapsody"], sp=mock.Mock())
     assert songs == []
+
+
+SPOTIFY_ALBUM = {
+    "name": "A Night At The Opera",
+    "id": "1GbtB4zTqAsyfZEsm1RZfx",
+    "release_date": "1975-11-21",
+    "total_tracks": 12,
+    "artists": [{"name": "Queen"}],
+}
+
+YOUTUBE_ALBUM = {
+    "title": "A Night At The Opera",
+    "browseId": "MPREb_album",
+    "artists": [{"name": "Queen"}],
+    "year": "1975",
+}
+
+YOUTUBE_ALBUM_DETAIL = {
+    "title": "A Night At The Opera",
+    "year": "1975",
+    "thumbnails": [{"url": "https://img/album.jpg"}],
+    "tracks": [
+        {"title": "Death on Two Legs", "videoId": "v1", "artists": [{"name": "Queen"}]},
+        {"title": "Bohemian Rhapsody", "videoId": "v2", "artists": [{"name": "Queen"}]},
+    ],
+}
+
+
+def _youtube_context(detail):
+    ym = mock.MagicMock()
+    ym.get_album.return_value = detail
+    ctx = mock.MagicMock()
+    ctx.__enter__.return_value = ym
+    return ctx
+
+
+def test_format_spotify_album():
+    assert (
+        search.format_spotify_album(SPOTIFY_ALBUM)
+        == "A Night At The Opera — Queen — 1975 — 12 tracks"
+    )
+
+
+def test_format_youtube_album():
+    assert (
+        search.format_youtube_album(YOUTUBE_ALBUM)
+        == "A Night At The Opera — Queen — 1975"
+    )
+
+
+def test_resolve_albums_spotify_backend(tmp_path):
+    album_songs = [{"name": "Bohemian Rhapsody"}, {"name": "Death on Two Legs"}]
+    with mock.patch.object(
+        search, "search_spotify_albums", return_value=[SPOTIFY_ALBUM]
+    ) as mock_search, mock.patch.object(
+        search, "fetch_tracks", return_value=album_songs
+    ) as mock_fetch, mock.patch("builtins.input", return_value="1"):
+        units = search.resolve_albums(
+            ["A Night At The Opera Queen"], str(tmp_path), sp=mock.Mock()
+        )
+    mock_search.assert_called_once()
+    mock_fetch.assert_called_once()
+    assert len(units) == 1
+    assert units[0]["songs"] == album_songs
+    assert units[0]["save_path"].name == "A Night At The Opera"
+    assert units[0]["save_path"].is_dir()
+
+
+def test_resolve_albums_youtube_backend(tmp_path):
+    with mock.patch.object(
+        search, "search_youtube_albums", return_value=[YOUTUBE_ALBUM]
+    ), mock.patch.object(
+        search.ytmusicapi, "YTMusic", return_value=_youtube_context(YOUTUBE_ALBUM_DETAIL)
+    ), mock.patch("builtins.input", return_value="1"):
+        units = search.resolve_albums(["A Night At The Opera"], str(tmp_path), sp=None)
+    assert len(units) == 1
+    songs = units[0]["songs"]
+    assert len(songs) == 2
+    assert [s["name"] for s in songs] == ["Death on Two Legs", "Bohemian Rhapsody"]
+    assert all(s["album"] == "A Night At The Opera" for s in songs)
+    assert all(s["num_tracks"] == 2 for s in songs)
+    assert all(s["year"] == "1975" for s in songs)
+    assert songs[0]["num"] == 1 and songs[1]["num"] == 2
+    assert all(s["cover"] == "https://img/album.jpg" for s in songs)
+
+
+def test_resolve_albums_falls_back_to_youtube_on_spotify_error(tmp_path):
+    with mock.patch.object(
+        search, "search_spotify_albums", side_effect=Exception("403 Forbidden")
+    ), mock.patch.object(
+        search, "search_youtube_albums", return_value=[YOUTUBE_ALBUM]
+    ) as mock_yt, mock.patch.object(
+        search.ytmusicapi, "YTMusic", return_value=_youtube_context(YOUTUBE_ALBUM_DETAIL)
+    ), mock.patch("builtins.input", return_value="1"):
+        units = search.resolve_albums(["A Night At The Opera"], str(tmp_path), sp=mock.Mock())
+    mock_yt.assert_called_once()
+    assert len(units) == 1
+    assert len(units[0]["songs"]) == 2
+
+
+def test_resolve_albums_skips_query_with_no_results(tmp_path):
+    with mock.patch.object(search, "search_spotify_albums", return_value=[]):
+        units = search.resolve_albums(["nonexistent"], str(tmp_path), sp=mock.Mock())
+    assert units == []

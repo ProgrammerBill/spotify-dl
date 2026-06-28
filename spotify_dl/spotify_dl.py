@@ -25,7 +25,7 @@ from spotify_dl.youtube import (
     dump_json,
 )
 
-from spotify_dl.search import resolve_songs
+from spotify_dl.search import resolve_songs, resolve_albums
 
 
 def spotify_dl():
@@ -46,6 +46,17 @@ def spotify_dl():
         action="store",
         help="Search and download a song by name (optionally with artist), "
         "e.g. -q \"Bohemian Rhapsody Queen\". Can be given multiple times.",
+        type=str,
+        nargs="+",
+        required=False,
+    )
+    parser.add_argument(
+        "-a",
+        "--album",
+        action="store",
+        help="Search for an album by name (optionally with artist) and "
+        "download all of its tracks, e.g. -a \"A Night At The Opera Queen\". "
+        "Can be given multiple times.",
         type=str,
         nargs="+",
         required=False,
@@ -180,10 +191,11 @@ def spotify_dl():
             else:
                 setattr(args, key, value)
 
-    if not args.url and not args.song:
+    if not args.url and not args.song and not args.album:
         raise (
             Exception(
-                "Nothing to do: provide a Spotify URL with -l or a song name with -q."
+                "Nothing to do: provide a Spotify URL with -l, a song name with "
+                "-q, or an album name with -a."
             )
         )
 
@@ -236,6 +248,15 @@ def spotify_dl():
             save_path = Path(args.output)
             save_path.mkdir(parents=True, exist_ok=True)
             url_data["urls"].append({"save_path": save_path, "songs": songs})
+
+    if args.album:
+        if sp is None:
+            log.info(
+                "No Spotify credentials found; searching YouTube Music directly."
+            )
+        for unit in resolve_albums(args.album, args.output, sp=sp):
+            log.info("Saving album songs to %s", unit["save_path"])
+            url_data["urls"].append(unit)
 
     if not url_data["urls"]:
         log.error("Nothing to download.")

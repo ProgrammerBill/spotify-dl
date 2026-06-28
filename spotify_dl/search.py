@@ -12,9 +12,13 @@ Both backends funnel through :func:`resolve_songs`, which presents the
 candidates and lets the user pick one interactively.
 """
 
+from pathlib import Path
+
 import ytmusicapi
 
 from spotify_dl.scaffold import log, console
+from spotify_dl.spotify import fetch_tracks
+from spotify_dl.utils import sanitize
 
 
 def search_spotify_tracks(sp, query, limit=5):
@@ -187,3 +191,139 @@ def resolve_songs(queries, sp=None, limit=5):
             continue
         songs.append(builder(candidates[index]))
     return songs
+
+
+def search_spotify_albums(sp, query, limit=5):
+    """
+    Search Spotify for albums matching the query.
+    :return list of raw Spotify album objects
+    """
+    results = sp.search(q=query, type="album", limit=limit)
+    return results.get("albums", {}).get("items", [])
+
+
+def search_youtube_albums(query, limit=5):
+    """
+    Search YouTube Music for albums matching the query.
+    :return list of YouTube Music album search result dicts
+    """
+    with ytmusicapi.YTMusic() as ym:
+        results = ym.search(query, filter="albums")
+    return results[:limit]
+
+
+def format_spotify_album(album):
+    """Build a human-readable one-line description of a Spotify album."""
+    artists = ", ".join(a["name"] for a in album.get("artists", []))
+    release_date = album.get("release_date", "") or ""
+    year = release_date[:4]
+    total = album.get("total_tracks", "?")
+    suffix = f" — {year}" if year else ""
+    return f"{album.get('name')} — {artists}{suffix} — {total} tracks"
+
+
+def format_youtube_album(album):
+    """Build a human-readable one-line description of a YouTube Music album."""
+    artists = ", ".join(
+        a["name"] for a in album.get("artists", []) if a.get("name")
+    )
+    year = album.get("year") or ""
+    suffix = f" — {year}" if year else ""
+    return f"{album.get('title')} — {artists}{suffix}"
+
+
+def _resolve_one_spotify_album(sp, query, output_dir, limit):
+    """Search, select and expand a single album via Spotify.
+    :return a download unit ({save_path, songs}) or None to skip
+    """
+    albums = search_spotify_albums(sp, query, limit)
+    if not albums:
+        log.error("No album results found for '%s', skipping.", query)
+        return None
+    displays = [format_spotify_album(a) for a in albums]
+    index = prompt_user_selection(displays, query)
+    if index is None:
+        log.info("Skipped '%s'.", query)
+        return None
+    album = albums[index]
+    name = sanitize(album.get("name", "album"))
+    songs = fetch_tracks(sp, "album", album.get("id"))
+    save_path = Path(output_dir) / name
+    save_path.mkdir(parents=True, exist_ok=True)
+    return {"save_path": save_path, "songs": songs}
+
+
+def _resolve_one_youtube_album(query, output_dir, limit):
+    """Search, select and expand a single album via YouTube Music.
+    :return a download unit ({save_path, songs}) or None to skip
+    """
+    albums = search_youtube_albums(query, limit)
+    if not albums:
+        log.error("No album results found for '%s', skipping.", query)
+        return None
+    displays = [format_youtube_album(a) for a in albums]
+    index = prompt_user_selection(displays, query)
+    if index is None:
+        log.info("Skipped '%s'.", query)
+        return None
+    album = albums[index]
+    with ytmusicapi.YTMusic() as ym:
+        detail = ym.get_album(album.get("browseId"))
+
+    album_name = detail.get("title", album.get("title", "album"))
+    year = (detail.get("year") or "")[:4]
+    thumbnails = detail.get("thumbnails", [])
+    album_cover = thumbnails[-1]["url"] if thumbnails else None
+    tracks = detail.get("tracks", [])
+    total = len(tracks)
+
+    songs = []
+    for position, track in enumerate(tracks, start=1):
+        song = build_song_dict_from_youtube(track)
+        song["album"] = album_name
+        song["year"] = year
+        song["num"] = position
+        song["num_tracks"] = total
+        song["playlist_num"] = position
+        if song.get("cover") is None:
+            song["cover"] = album_cover
+        songs.append(song)
+
+    save_path = Path(output_dir) / sanitize(album_name)
+    save_path.mkdir(parents=True, exist_ok=True)
+    return {"save_path": save_path, "songs": songs}
+
+
+def resolve_albums(queries, output_dir, sp=None, limit=5):
+    """
+    Resolve album-name queries into download units via interactive selection.
+
+    Uses Spotify search when ``sp`` is provided, otherwise (or when a Spotify
+    request errors out) falls back to YouTube Music.
+    :param queries: list of free text album queries
+    :param output_dir: base directory; each album gets its own sub-folder
+    :param sp: Spotify client, or None to use the YouTube Music backend
+    :param limit: maximum number of candidates shown per query
+    :return list of download units, each a dict with save_path and songs
+    """
+    units = []
+    spotify_failed = False
+    for query in queries:
+        unit = None
+        if sp is not None and not spotify_failed:
+            try:
+                unit = _resolve_one_spotify_album(sp, query, output_dir, limit)
+            except Exception as exc:  # skipcq: PYL-W0703
+                log.warning(
+                    "Spotify album search failed (%s); falling back to "
+                    "YouTube Music.",
+                    exc,
+                )
+                spotify_failed = True
+
+        if sp is None or spotify_failed:
+            unit = _resolve_one_youtube_album(query, output_dir, limit)
+
+        if unit is not None:
+            units.append(unit)
+    return units
